@@ -1,0 +1,12 @@
+set tabsize 4
+set softwrap
+set mouse
+set autoindent 
+set linenumbers
+set tabstospaces
+set trimblanks
+set constantshow
+set titlecolor white,red
+set keycolor cyan
+set functioncolor cyan
+set numbercolor yellow
