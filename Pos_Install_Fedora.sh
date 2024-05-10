@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 08/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 09/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -28,7 +28,7 @@ url_micro="https://github.com/ciro-mota/my-pos-install/raw/main/confs/micro/sett
 url_starship="https://github.com/ciro-mota/my-pos-install/raw/main/confs/starship/starship.toml"
 url_vim="https://github.com/ciro-mota/my-pos-install/raw/main/confs/vim/.vimrc"
 url_nano="https://github.com/ciro-mota/my-pos-install/raw/main/confs/nano/.nanorc"
-url_zsh_aliases="https://github.com/ciro-mota/my-pos-install/raw/main/confs/.zsh_aliases"
+url_zsh_aliases="https://github.com/ciro-mota/my-pos-install/raw/main/confs/zsh/.zsh_aliases"
 url_fantasque="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FantasqueSansMono/Regular/FantasqueSansMNerdFontMono-Regular.ttf"
 
 ### Installation and uninstallation packages.
