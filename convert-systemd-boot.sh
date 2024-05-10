@@ -21,7 +21,7 @@
 
 install-systemd-boot() { 
 	
-	sudo dnf up --refresh
+	sudo dnf up --refresh -y
 	sudo rm /etc/dnf/protected.d/{grub2*,shim*}
 	sudo dnf remove -y grubby grub2\* && sudo rm -rf /boot/grub2 && sudo rm -rf /boot/loader
 	sudo dnf install -y systemd-boot-unsigned sdubby
