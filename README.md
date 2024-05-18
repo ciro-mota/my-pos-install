@@ -154,7 +154,7 @@ Use the [Gradience](https://flathub.org/apps/details/com.github.GradienceTeam.Gr
 </details>
 
 
-You will also need to add the set of variables below for `gtk3` and `gtk4` in "Advanced" -> "Custom CSS" in Gradience .
+You will also need to add the set of variables below for `gtk3` and `gtk4` in "Advanced" -> "Custom CSS" in Gradience.
 
 ```
 @define-color sidebar_bg_color @window_bg_color;
