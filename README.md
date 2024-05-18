@@ -153,21 +153,15 @@ Use the [Gradience](https://flathub.org/apps/details/com.github.GradienceTeam.Gr
 ```
 </details>
 
-It is also possible to apply transparency without using extensions to the GNOME taskbar. To do this, you must initially export the system themes file for your user:
 
-```bash
-gresource extract /usr/share/gnome-shell/gnome-shell-theme.gresource /org/gnome/shell/theme/gnome-shell.css > ~/.themes/gnome-shell.css
+You will also need to add the set of variables below for `gtk3` and `gtk4` in "Advanced" -> "Custom CSS" in Gradience.
+
 ```
-
-Edit your theme's `~/.themes/gnome-shell.css` file, locate the set of lines below:
-
-```css
-/* Top Bar */
-#panel {
-  background-color: rgba(0, 0, 0, 0.7);
+@define-color sidebar_bg_color @window_bg_color;
+@define-color sidebar_fg_color @window_fg_color;
+@define-color sidebar_border_color @window_bg_color;
+@define-color sidebar_backdrop_color @window_bg_color;
 ```
-
-And modify the last value of the field (0.7). In my case there is a transparency of 0.7, equivalent to 70% and in black.
 
 ### 💻 Final appearance
 
@@ -175,4 +169,4 @@ And modify the last value of the field (0.7). In my case there is a transparency
 
 ### 📅 Last modified
 
-> 08 Mai 2024
+> 18 Mai 2024
