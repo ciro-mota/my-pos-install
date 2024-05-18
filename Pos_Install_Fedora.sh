@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 09/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 18/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -29,6 +29,7 @@ url_starship="https://github.com/ciro-mota/my-pos-install/raw/main/confs/starshi
 url_vim="https://github.com/ciro-mota/my-pos-install/raw/main/confs/vim/.vimrc"
 url_nano="https://github.com/ciro-mota/my-pos-install/raw/main/confs/nano/.nanorc"
 url_zsh_aliases="https://github.com/ciro-mota/my-pos-install/raw/main/confs/zsh/.zsh_aliases"
+url_ulauncher="https://github.com/ciro-mota/my-pos-install/raw/main/confs/ulauncher/transparent-adwaita.zip"
 url_fantasque="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FantasqueSansMono/Regular/FantasqueSansMNerdFontMono-Regular.ttf"
 
 ### Installation and uninstallation packages.
@@ -440,6 +441,15 @@ else
 	wget  "$url_fantasque" -P "$HOME"/.local/share/fonts
 fi
 
+if [ -d "$HOME"/.config/ulauncher/user-themes ]; then 
+	curl -fsSL "$url_ulauncher" -o "$HOME"/.config/ulauncher/user-themes/transparent-adwaita.zip
+	unzip -qq /tmp/transparent-adwaita.zip
+else \
+	mkdir -p "$HOME"/.config/ulauncher/user-themes
+	curl -fsSL "$url_ulauncher" -o "$HOME"/.config/ulauncher/user-themes/transparent-adwaita.zip;
+	unzip -qq /tmp/transparent-adwaita.zip
+fi
+
 wget "$url_starship" -P "$HOME"/.config/starship.toml;
 wget "$url_vim" -P "$HOME"/.vimrc;
 wget "$url_nano" -P "$HOME"/.nanorc;
@@ -450,8 +460,8 @@ unzip -qq /tmp/ubuntu.zip -d /tmp
 sudo cp -a /tmp/ubuntu-font-family-0.83/*.ttf "$HOME"/.local/share/fonts
 sudo fc-cache -f -v >/dev/null
 
-flatpak --user override --env=GTK_THEME=adw-gtk3-dark
-flatpak --user override --env=ICON_THEME=Papirus 
+sudo flatpak override --filesystem="xdg-data/themes:ro"
+sudo flatpak override --filesystem="xdg-data/icons:ro"
 gsettings set org.gnome.desktop.default-applications.terminal exec terminator
 gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium.desktop', 'codium.desktop', 'appimagekit-joplin.desktop']"
