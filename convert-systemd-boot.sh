@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 08/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 18/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 										### SCRIPT IN EXPERIMENTAL STATE ###
 
@@ -21,14 +21,14 @@
 
 install-systemd-boot() { 
 	
-	sudo dnf up --refresh -y
-	sudo rm /etc/dnf/protected.d/{grub2*,shim*}
-	sudo dnf remove -y grubby grub2\* && sudo rm -rf /boot/grub2 && sudo rm -rf /boot/loader
-	sudo dnf install -y systemd-boot-unsigned sdubby
-	cat /proc/cmdline | cut -d ' ' -f 2- | sudo tee /etc/kernel/cmdline
-	sudo bootctl install
-	sudo kernel-install add "$(uname -r)" /lib/modules/"$(uname -r)"/vmlinuz
-	sudo dnf reinstall kernel-core -y
+	sudo dnf up --refresh -y && \
+	sudo rm /etc/dnf/protected.d/{grub2*,shim*} && \
+	sudo dnf remove -y grubby grub2\* && sudo rm -rf /boot/grub2 && sudo rm -rf /boot/loader && \
+	sudo dnf install -y systemd-boot-unsigned sdubby && \
+	cat /proc/cmdline | cut -d ' ' -f 2- | sudo tee /etc/kernel/cmdline && \
+	sudo bootctl install && \
+	sudo kernel-install add "$(uname -r)" /lib/modules/"$(uname -r)"/vmlinuz && \
+	sudo dnf reinstall kernel-core -y && \
 	echo -e "\e[31;1mYou must restart now for the changes to take effect.\e[m"
 
 }
