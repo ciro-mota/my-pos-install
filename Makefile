@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 18/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 20/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -56,6 +56,7 @@ apps_remover = cheese \
 apps = android-tools \
 	bat \
 	btop \
+	cabextract \
 	chromium \
 	containerd \
 	codium \
@@ -86,6 +87,7 @@ apps = android-tools \
 	vim-enhanced \
 	vlc \
 	vlc-plugins-freeworld \
+	xorg-x11-font-utils \
 	zsh
 
 flatpaks = com.github.finefindus.eyedropper \
@@ -188,7 +190,7 @@ install-tinifier:							# Install Tinifier compress images tool.
 	@sudo cp /tmp/tinifier /usr/local/bin
 	@sudo chmod +x /usr/local/bin/tinifier
 	
-install-lact:
+install-lact:								# Install LACT AMD GPU Tool.
 	@curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
 	| grep "browser_download_url.*fedora-40.rpm" \
 	| cut -d : -f 2,3 \
@@ -196,6 +198,9 @@ install-lact:
 	| tr -d \" \
 	| xargs wget -q -P /tmp/ \
 	&& sudo dnf install -y /tmp/*fedora-40.rpm
+
+install-ms-fonts:							# Installing Microsoft Fonts:
+	@yes | sudo rpm -i -y https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
 
 # # ------------------------------------------------------------------------------------------------------------- #
 # # -------------------------------------------------- POST-INSTALL --------------------------------------------- #
@@ -462,6 +467,7 @@ apply-execution:							# Apply execution section in the system if the distro is 
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
 		$(MAKE) install-lact; \
+		$(MAKE) install-ms-fonts; \
 	else \
 		echo -e "\e[31;1mDistro not approved for use with this script.\e[m"; \
 		exit 1; \
@@ -510,6 +516,7 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
 		$(MAKE) install-lact; \
+		$(MAKE) install-ms-fonts; \
 		$(MAKE) apply-performance; \
 		$(MAKE) apply-font-fix; \
 		$(MAKE) apply-settings-swap; \
