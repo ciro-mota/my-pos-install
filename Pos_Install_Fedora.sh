@@ -240,7 +240,7 @@ curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
 
 ### Installing Microsoft Fonts.
 
-sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
+yes | sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
 
 # ------------------------------------------------------------------------------------------------------------- #
 # --------------------------------------------------- POS-INSTALL --------------------------------------------- #
