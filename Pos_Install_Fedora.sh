@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 18/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 20/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -57,6 +57,7 @@ apps_remove=(cheese
 apps_install=(android-tools 
 	bat 
 	btop 
+	cabextract 
 	chromium 
 	containerd.io 
 	codium 
@@ -87,6 +88,7 @@ apps_install=(android-tools
 	vim-enhanced 
 	vlc 
 	vlc-plugins-freeworld 
+	xorg-x11-font-utils 
 	zsh)
 
 flatpak_install=(com.github.finefindus.eyedropper
@@ -221,9 +223,24 @@ for code_ext in "${code_extensions[@]}"; do
 done
 
 ### Install Tinifier.
+
 wget -O /tmp/tinifier https://github.com/tarampampam/tinifier/releases/download/v4.1.0/tinifier-linux-amd64
 sudo cp /tmp/tinifier /usr/local/bin
 sudo chmod +x /usr/local/bin/tinifier
+
+# Install LACT AMD GPU Tool.
+
+curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
+| grep "browser_download_url.*fedora-40.rpm" \
+| cut -d : -f 2,3 \
+| tail -1 \
+| tr -d \" \
+| xargs wget -q -P /tmp/ \
+&& sudo dnf install -y /tmp/*fedora-40.rpm
+
+### Installing Microsoft Fonts.
+
+sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
 
 # ------------------------------------------------------------------------------------------------------------- #
 # --------------------------------------------------- POS-INSTALL --------------------------------------------- #
