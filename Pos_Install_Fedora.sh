@@ -71,6 +71,7 @@ apps_install=(android-tools
 	gimp 
 	gnome-tweaks 
 	goverlay 
+	hadolint 
 	heroic-games-launcher-bin 
 	hugo 
 	ksnip 
@@ -98,18 +99,19 @@ flatpak_install=(com.github.finefindus.eyedropper
 	org.remmina.Remmina 
 	org.telegram.desktop)
 
-code_extensions=(AquaSecurityOfficial.trivy-vulnerability-scanner 
-	dendron.dendron-markdown-shortcuts 
+code_extensions=(AquaSecurityOfficial.trivy-vulnerability-scanner
+	dendron.dendron-markdown-shortcuts
 	eamodio.gitlens
 	emmanuelbeziat.vscode-great-icons
+	exiasr.hadolint
 	foxundermoon.shell-format
 	HashiCorp.terraform
 	ritwickdey.LiveServer
 	MS-CEINTL.vscode-language-pack-pt-BR
-	Shan.code-settings-sync 
-	streetsidesoftware.code-spell-checker 
-	streetsidesoftware.code-spell-checker-portuguese-brazilian 
-	timonwong.shellcheck 
+	Shan.code-settings-sync
+	streetsidesoftware.code-spell-checker
+	streetsidesoftware.code-spell-checker-portuguese-brazilian
+	timonwong.shellcheck
 	zhuangtongfa.Material-theme)
 
 directory_downloads="$HOME/Downloads/apps"

@@ -70,6 +70,7 @@ apps = android-tools \
 	gimp \
 	gnome-tweaks \
 	goverlay \
+	hadolint \
 	heroic-games-launcher-bin \
 	hugo \
 	ksnip \
@@ -101,6 +102,7 @@ code_extensions = AquaSecurityOfficial.trivy-vulnerability-scanner \
 	dendron.dendron-markdown-shortcuts \
 	eamodio.gitlens \
 	emmanuelbeziat.vscode-great-icons \
+	exiasr.hadolint \
 	foxundermoon.shell-format \
 	HashiCorp.terraform \
 	ritwickdey.LiveServer \
