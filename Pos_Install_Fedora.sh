@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 20/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 24/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -79,6 +79,7 @@ apps_install=(android-tools
 	lsd 
 	mangohud 
 	micro 
+	mozilla-openh264 
 	opentofu 
 	qBittorrent 
 	qemu-system-x86 
@@ -362,8 +363,8 @@ sudo systemctl disable abrtd.service
 ### Disabling unnecessary repos.
 
 sudo dnf config-manager --set-disabled rpmfusion-nonfree-nvidia-driver
-sudo dnf config-manager --set-disabled fedora-cisco-openh264
-sudo dnf config-manager --set-disabled google-chrome 
+sudo dnf config-manager --set-disabled google-chrome
+sudo dnf config-manager --set-disabled copr:copr.fedorainfracloud.org:phracek:PyCharm
 
 ### Set new Hostname.
 
