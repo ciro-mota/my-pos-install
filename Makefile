@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 24/05/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 01/06/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -69,6 +69,7 @@ apps = android-tools \
 	gedit \
 	gimp \
 	gnome-tweaks \
+	google-noto-emoji-fonts \
 	goverlay \
 	hadolint \
 	heroic-games-launcher-bin \
@@ -77,6 +78,7 @@ apps = android-tools \
 	lolcat \
 	lsd \
 	mangohud \
+	nautilus-python \
 	micro \
 	mozilla-openh264 \
 	opentofu \
@@ -329,6 +331,37 @@ apply-fix-flameshot:						# Fix for Flameshot.
 	EOF
 
 	@sudo chmod a+x /usr/local/bin/flameshot-gui-workaround
+
+## wiki.archlinux.org/title/systemd/Timers
+.ONESHELL:
+apply-service-timer:						# Apply my service and timer for backups.
+	@sudo tee /etc/systemd/user/mybackup.timer <<'EOF'
+	[Unit]
+	Description=My Job Backup
+
+	[Timer]
+	OnCalendar=Fri 15:00
+	Persistent=true
+
+	[Install]
+	WantedBy=mybackup.target
+	EOF
+	
+	@sudo tee /etc/systemd/user/mybackup.service <<'EOF'
+	[Unit]
+	Description=My Backup Job Service
+
+	[Service]
+	Type=simple
+	ExecStart=/usr/local/bin/rsync_backup.sh
+	Restart=on-failure
+
+	[Install]
+	WantedBy=default.target
+	EOF
+	
+	@systemctl  enable --user mybackup.timer
+	@systemctl  enable --user mybackup.service
 
 .ONESHELL:
 apply-icon-theme-settings:					# Installation of icons, themes, font and basic settings.
