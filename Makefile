@@ -82,6 +82,7 @@ apps = android-tools \
 	micro \
 	mozilla-openh264 \
 	opentofu \
+	pre-commit \
 	qbittorrent \
 	qemu-system-x86 \
 	terminator \
@@ -453,9 +454,15 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 	@curl -fsSL $(url_nano) -o $(HOME)/.nanorc;
 	@curl -fsSL $(url_zsh_aliases) -o $(HOME)/.zsh_aliases;
 
-	@wget -O /tmp/ubuntu.zip https://assets.ubuntu.com/v1/0cef8205-ubuntu-font-family-0.83.zip
+	@curl -fsSL https://api.github.com/repos/canonical/Ubuntu-Sans-fonts/releases/latest \
+	| grep "browser_download_url.*.zip" \
+	| cut -d : -f 2,3 \
+	| tail -1 \
+	| tr -d \" \
+	| xargs wget -O /tmp/ubuntu.zip -q -P /tmp/
+
 	@unzip -qq /tmp/ubuntu.zip -d /tmp
-	@sudo cp -a /tmp/ubuntu-font-family-0.83/*.ttf $(HOME)/.local/share/fonts
+	@cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
 	@sudo fc-cache -f -v >/dev/null
 
 	@sudo flatpak override --filesystem="xdg-data/themes:ro"
@@ -463,7 +470,9 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 	@gsettings set org.gnome.desktop.default-applications.terminal exec terminator
 	@gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 	@gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium-browser.desktop', 'codium.desktop', 'appimagekit-joplin.desktop']"
-	
+	@gsettings set org.gnome.desktop.interface font-name 'Ubuntu 11' 
+	@gsettings set org.gnome.desktop.interface monospace-font-name 'Ubuntu Mono 13'
+
 	@curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 finish-clenaning:							# Finishing and cleaning.
