@@ -128,3 +128,6 @@ modified = '📝'
 staged = '[++\($count\)](green)'
 renamed = '👅'
 deleted = '🗑'
+
+[aws]
+disabled = true
