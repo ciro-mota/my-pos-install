@@ -2,23 +2,30 @@
 
 alias install="sudo dnf install"
 alias update="sudo dnf up --refresh && flatpak update"
-alias commita="git commit -S -am"
 alias publica="git push origin main"
 alias cleanpkg="sudo dnf autoremove - && sudo dnf clean packages && flatpak uninstall --unused"
 alias checka="du -shc /* | sort -h"
 alias checklog="du -shc /var/log/* | sort -h"
 alias comprimir="tinifier compress --keep-original-file -r /home/ciromota/COMPRESS-IMAGES"
 alias ls="lsd"
-
+alias docker="podman"
+alias terraform="tofu"
 
 # Alias funções
 
-fedoraupgrade () {
+alias git-reset-main='f() {
+    git checkout --orphan TEMP_BRANCH &&
+    git add -A &&
+    git commit -am "feat: Initial commit" &&
+    git branch -D main &&
+    git branch -m main &&
+    git push -f origin main
+}; f'
 
+alias fedoraupgrade='f() {
 sudo dnf upgrade --refresh -y && \
 sudo dnf system-upgrade download --releasever=$1 -y
-
-}
+}; f'
 
 ghc () { git clone https://github.com/$1/$2.git }
 glc () { git clone https://gitlab.com/$1/$2.git }
