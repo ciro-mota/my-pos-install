@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 01/06/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 06/10/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -54,7 +54,8 @@ apps_remove=(cheese
 	virtualbox-guest-additions-*
 	yelp)
 
-apps_install=(android-tools 
+apps_install=(adw-gtk3-theme 
+	android-tools 
 	bat 
 	btop 
 	cabextract 
@@ -67,6 +68,7 @@ apps_install=(android-tools
 	file-roller 
 	flameshot 
 	fortune-mod 
+	fragments 
 	gedit 
 	gimp 
 	gnome-tweaks 
@@ -84,10 +86,8 @@ apps_install=(android-tools
 	mozilla-openh264 
 	opentofu 
 	pre-commit 
-	qBittorrent 
 	qemu-system-x86 
 	terminator 
-	steam 
 	ulauncher 
 	unrar-free 
 	vim-enhanced 
@@ -99,6 +99,7 @@ apps_install=(android-tools
 flatpak_install=(com.github.finefindus.eyedropper
 	com.github.GradienceTeam.Gradience 
 	com.mattjakeman.ExtensionManager 
+	com.valvesoftware.Steam 
 	org.libreoffice.LibreOffice 
 	org.remmina.Remmina 
 	org.telegram.desktop)
@@ -124,7 +125,7 @@ directory_downloads="$HOME/Downloads/apps"
 # ---------------------------------------------------- TEST --------------------------------------------------- #
 ### Check if the distribution is correct.
 
-if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(39|40)$ ]]
+if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(40|41)$ ]]
 then
 	echo ""
 	echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"
@@ -199,8 +200,6 @@ sudo dnf swap ffmpeg-free ffmpeg --allowerasing -y
 
 sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
 sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld -y
-sudo dnf swap mesa-va-drivers.i686 mesa-va-drivers-freeworld.i686 -y
-sudo dnf swap mesa-vdpau-drivers.i686 mesa-vdpau-drivers-freeworld.i686 -y
 
 ### Installing QEMU/Virt-Manager
 
@@ -233,6 +232,13 @@ done
 wget -O /tmp/tinifier https://github.com/tarampampam/tinifier/releases/download/v4.1.0/tinifier-linux-amd64
 sudo cp /tmp/tinifier /usr/local/bin
 sudo chmod +x /usr/local/bin/tinifier
+
+### Install some tools
+DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+curl -OL https://github.com/wagoodman/dive/releases/download/v"${DIVE_VERSION}"/dive_"${DIVE_VERSION}"_linux_amd64.rpm
+rpm -i dive_"${DIVE_VERSION}"_linux_amd64.rpm
+
+curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
 
 # Install LACT AMD GPU Tool.
 
@@ -296,6 +302,13 @@ tee -a "$HOME"/.config/fontconfig/fonts.conf << 'EOF'
 	<edit mode="assign" name="lcdfilter">
 	<const>lcddefault</const>
 	</edit>
+	<alias>
+	    <family>monospace</family>
+	    <prefer>
+	      <family>FantasqueSansM Nerd Font Mono</family>
+	      <family>Noto Color Emoji</family>
+	     </prefer>
+  	</alias>
 </match>
 </fontconfig>
 EOF
@@ -417,16 +430,7 @@ systemctl  enable --user mybackup.service
 
 ### Installation of icons, themes, font and basic settings.
 
-theme (){
-
-curl -s https://api.github.com/repos/lassekongo83/adw-gtk3/releases/latest | grep "browser_download_url.*tar.xz" | \
-cut -d : -f 2,3 | tr -d \" | \
-wget -P "$directory_downloads" -i-
-tar xf "$directory_downloads"/*.tar.xz -C "$HOME"/.local/share/themes
-
 gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' && gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-
-}
 
 icon (){
 
@@ -440,17 +444,6 @@ rm "$HOME"/.local/share/icons/Papirus-Dark -rf
 rm "$HOME"/.local/share/icons/Papirus-Light -rf
 
 }
-
-if [ -d "$HOME"/.local/share/themes ]
-then
-  echo -e "Folder already exists.\n"
-  echo -e "Installing..."
-  theme
-else
-  mkdir -p "$HOME"/.local/share/themes
-  echo -e "Installing..."
-  theme
-fi
 
 if [ -d "$HOME"/.local/share/icons ]
 then
@@ -487,14 +480,6 @@ else \
 	wget  "$url_micro" -P "$HOME"/.config/micro; \
 fi
 
-if [ -d "$HOME"/.local/share/fonts ]
-then
-	wget  "$url_fantasque" -P "$HOME"/.local/share/fonts
-else
-	mkdir -p "$HOME"/.local/share/fonts
-	wget  "$url_fantasque" -P "$HOME"/.local/share/fonts
-fi
-
 if [ -d "$HOME"/.config/ulauncher/user-themes ]; then 
 	curl -fsSL "$url_ulauncher" -o "$HOME"/.config/ulauncher/user-themes/transparent-adwaita.zip
 	unzip -qq /tmp/transparent-adwaita.zip
@@ -509,16 +494,37 @@ wget "$url_vim" -P "$HOME"/.vimrc;
 wget "$url_nano" -P "$HOME"/.nanorc;
 wget "$url_zsh_aliases" -P "$HOME"/.zsh_aliases;
 
+func_font() {
+
+curl -fsSL https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest \
+| grep "browser_download_url.*FantasqueSansMono.zip" \
+| cut -d : -f 2,3 \
+| tail -1 \
+| tr -d \" \
+| xargs wget -q -P /tmp/ \
+&& unzip -qq /tmp/FantasqueSansMono.zip
+
 curl -fsSL https://api.github.com/repos/canonical/Ubuntu-Sans-fonts/releases/latest \
 	| grep "browser_download_url.*.zip" \
 	| cut -d : -f 2,3 \
 	| tail -1 \
 	| tr -d \" \
-	| xargs wget -O /tmp/ubuntu.zip -q -P /tmp/
+	| xargs wget -O /tmp/ubuntu.zip -q -P /tmp/ \
+&& unzip -qq /tmp/ubuntu.zip
 
-unzip -qq /tmp/ubuntu.zip -d /tmp
 cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
+cp -a /tmp/FantasqueSansMNerdFont*.ttf "$HOME"/.local/share/fonts
 sudo fc-cache -f -v >/dev/null
+
+}
+
+if [ -d "$HOME"/.local/share/fonts ]
+then
+	func_font
+else
+	mkdir -p "$HOME"/.local/share/fonts
+	func_font
+fi
 
 sudo flatpak override --filesystem="xdg-data/themes:ro"
 sudo flatpak override --filesystem="xdg-data/icons:ro"

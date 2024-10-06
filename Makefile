@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 01/06/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 06/08/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -53,7 +53,8 @@ apps_remover = cheese \
 	virtualbox-guest-additions-* \
 	yelp
 
-apps = android-tools \
+apps = adw-gtk3-theme \
+	android-tools \
 	bat \
 	btop \
 	cabextract \
@@ -66,6 +67,7 @@ apps = android-tools \
 	file-roller \
 	flameshot \
 	fortune-mod \
+	fragments \
 	gedit \
 	gimp \
 	gnome-tweaks \
@@ -83,10 +85,8 @@ apps = android-tools \
 	mozilla-openh264 \
 	opentofu \
 	pre-commit \
-	qbittorrent \
 	qemu-system-x86 \
 	terminator \
-	steam \
 	ulauncher \
 	unrar-free \
 	vim-enhanced \
@@ -98,6 +98,7 @@ apps = android-tools \
 flatpaks = com.github.finefindus.eyedropper \
 	com.github.GradienceTeam.Gradience \
 	com.mattjakeman.ExtensionManager \
+	com.valvesoftware.Steam \
 	org.libreoffice.LibreOffice \
 	org.remmina.Remmina \
 	org.telegram.desktop
@@ -169,8 +170,6 @@ add-multimedia:								# Enabling multimedia support and install.
 install-amd-mesa:							# Install Mesa AMD components from rpmfusion.
 	@sudo dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
 	@sudo dnf swap mesa-vdpau-drivers mesa-vdpau-drivers-freeworld -y
-	@sudo dnf swap mesa-va-drivers.i686 mesa-va-drivers-freeworld.i686 -y
-	@sudo dnf swap mesa-vdpau-drivers.i686 mesa-vdpau-drivers-freeworld.i686 -y
 
 install-qemu:								# Installing QEMU/Virt-Manager.
 	@sudo dnf install @virtualization -y
@@ -195,6 +194,13 @@ install-tinifier:							# Install Tinifier compress images tool.
 	@wget -O /tmp/tinifier https://github.com/tarampampam/tinifier/releases/download/v4.1.0/tinifier-linux-amd64
 	@sudo cp /tmp/tinifier /usr/local/bin
 	@sudo chmod +x /usr/local/bin/tinifier
+
+install-tools:								# Install some tools
+	@DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+	curl -OL https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_amd64.rpm
+	rpm -i dive_${DIVE_VERSION}_linux_amd64.rpm
+
+	@curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
 	
 install-lact:								# Install LACT AMD GPU Tool.
 	@curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
@@ -278,6 +284,13 @@ apply-font-fix:								# Apply font fixes.
 			<edit mode="assign" name="lcdfilter">
 			<const>lcddefault</const>
 			</edit>
+			  <alias>
+			    <family>monospace</family>
+			    <prefer>
+			      <family>FantasqueSansM Nerd Font Mono</family>
+			      <family>Noto Color Emoji</family>
+			     </prefer>
+			  </alias>
 		</match>
 		</fontconfig>
 		EOF
@@ -366,18 +379,7 @@ apply-service-timer:						# Apply my service and timer for backups.
 
 .ONESHELL:
 apply-icon-theme-settings:					# Installation of icons, themes, font and basic settings.
-	@theme (){
-
-	curl -fsSL https://api.github.com/repos/lassekongo83/adw-gtk3/releases/latest \
-	| grep "browser_download_url.*tar.xz" \
-	| cut -d : -f 2,3 \
-	| tr -d \" \
-	| xargs wget -q -P /tmp/ \
-	&& tar -xf /tmp/*.tar.xz -C $(HOME)/.local/share/themes
-
-	gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' && gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-
-	}
+	@gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' && gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 	@icon (){
 
@@ -392,16 +394,6 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 
 	}
 	
-	@if [ -d "$(HOME)/.local/share/themes" ]; then \
-		echo -e "Folder theme already exists.\n"; \
-		echo -e "Installing..."; \
-		theme; \
-	else \
-		mkdir -p $(HOME)/.local/share/themes; \
-		echo -e "Installing..."; \
-		theme; \
-	fi
-
 	@if [ -d "$(HOME)/.local/share/icons" ]; then \
 		echo -e "Folder icon already exists.\n"; \
 		echo -e "Installing..."; \
@@ -433,13 +425,6 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 		curl -fsSL $(url_micro) -o $(HOME)/.config/micro/settings.json; \
 	fi
 
-	@if [ -d "$(HOME)/.local/share/fonts" ]; then \
-		curl -fsSL $(url_fantasque) -o $(HOME)/.local/share/fonts/FantasqueSansMNerdFontMono-Regular.ttf; \
-	else \
-		mkdir -p "$(HOME)/.local/share/fonts"; \
-		curl -fsSL $(url_fantasque) -o $(HOME)/.local/share/fonts/FantasqueSansMNerdFontMono-Regular.ttf; \
-	fi
-
 	@if [ -d "$(HOME)/.config/ulauncher/user-themes" ]; then \
 		curl -fsSL $(url_ulauncher) -o $(HOME)/.config/ulauncher/user-themes/transparent-adwaita.zip; \
 		unzip -qq /tmp/transparent-adwaita.zip; \
@@ -449,21 +434,37 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 		unzip -qq /tmp/transparent-adwaita.zip; \
 	fi
 	
-	@curl -fsSL $(url_starship) -o $(HOME)/.config/starship.toml;
-	@curl -fsSL $(url_vim) -o $(HOME)/.vimrc;
-	@curl -fsSL $(url_nano) -o $(HOME)/.nanorc;
-	@curl -fsSL $(url_zsh_aliases) -o $(HOME)/.zsh_aliases;
+	@func_font() {
 
-	@curl -fsSL https://api.github.com/repos/canonical/Ubuntu-Sans-fonts/releases/latest \
-	| grep "browser_download_url.*.zip" \
+	curl -fsSL https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest \
+	| grep "browser_download_url.*FantasqueSansMono.zip" \
 	| cut -d : -f 2,3 \
 	| tail -1 \
 	| tr -d \" \
-	| xargs wget -O /tmp/ubuntu.zip -q -P /tmp/
+	| xargs wget -q -P /tmp/ \
+	&& unzip -qq /tmp/FantasqueSansMono.zip
 
-	@unzip -qq /tmp/ubuntu.zip -d /tmp
-	@cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
-	@sudo fc-cache -f -v >/dev/null
+	curl -fsSL https://api.github.com/repos/canonical/Ubuntu-Sans-fonts/releases/latest \
+		| grep "browser_download_url.*.zip" \
+		| cut -d : -f 2,3 \
+		| tail -1 \
+		| tr -d \" \
+		| xargs wget -O /tmp/ubuntu.zip -q -P /tmp/ \
+	&& unzip -qq /tmp/ubuntu.zip
+
+	cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
+	cp -a /tmp/FantasqueSansMNerdFont*.ttf "$HOME"/.local/share/fonts
+	sudo fc-cache -f -v >/dev/null
+
+	}
+
+	@if [ -d "$HOME"/.local/share/fonts ]
+	then
+		func_font
+	else
+		mkdir -p "$HOME"/.local/share/fonts
+		func_font
+	fi
 
 	@sudo flatpak override --filesystem="xdg-data/themes:ro"
 	@sudo flatpak override --filesystem="xdg-data/icons:ro"
@@ -481,7 +482,7 @@ finish-clenaning:							# Finishing and cleaning.
 	@sudo systemctl daemon-reload
 
 apply-requirements:							# Apply requirements section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 39 ] || [ $(FEDORA_RELEASE) = 40 ]; then \
+	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -498,7 +499,7 @@ apply-requirements:							# Apply requirements section in the system if the dist
 	fi
 	
 apply-execution:							# Apply execution section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 39 ] || [ $(FEDORA_RELEASE) = 40 ]; then \
+	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -511,6 +512,7 @@ apply-execution:							# Apply execution section in the system if the distro is 
 		$(MAKE) install-rpm; \
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
+		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
 		$(MAKE) install-ms-fonts; \
 	else \
@@ -519,7 +521,7 @@ apply-execution:							# Apply execution section in the system if the distro is 
 	fi
 	
 apply-post-install:							# Apply post-install section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 39 ] || [ $(FEDORA_RELEASE) = 40 ]; then \
+	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -540,7 +542,7 @@ apply-post-install:							# Apply post-install section in the system if the dist
 	fi
 	
 apply-all:									# Apply all sections in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 39 ] || [ $(FEDORA_RELEASE) = 40 ]; then \
+	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -560,6 +562,7 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) install-rpm; \
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
+		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
 		$(MAKE) install-ms-fonts; \
 		$(MAKE) apply-performance; \
