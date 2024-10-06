@@ -30,7 +30,6 @@ url_vim="https://github.com/ciro-mota/my-pos-install/raw/main/confs/vim/.vimrc"
 url_nano="https://github.com/ciro-mota/my-pos-install/raw/main/confs/nano/.nanorc"
 url_zsh_aliases="https://github.com/ciro-mota/my-pos-install/raw/main/confs/zsh/.zsh_aliases"
 url_ulauncher="https://github.com/ciro-mota/my-pos-install/raw/main/confs/ulauncher/transparent-adwaita.zip"
-url_fantasque="https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/FantasqueSansMono/Regular/FantasqueSansMNerdFontMono-Regular.ttf"
 
 ### Installation and uninstallation packages.
 
