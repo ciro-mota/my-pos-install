@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 06/10/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 01/11/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -62,6 +62,7 @@ apps_install=(adw-gtk3-theme
 	containerd.io 
 	codium 
 	cowsay 
+	docker-compose 
 	fastfetch 
 	ffmpegthumbnailer 
 	file-roller 
@@ -152,6 +153,8 @@ done
 
 sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm \
 https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-"$(rpm -E %fedora)".noarch.rpm -y
+sudo sed -i '/#baseurl/a baseurl=http://ftp-stud.hs-esslingen.de/pub/Mirrors/rpmfusion.org/free/fedora/updates/$releasever/$basearch/' rpmfusion*.repo
+sudo sed -i 's/^metalink/#&/' /etc/yum.repos.d/rpmfusion*.repo
 
 ### VSCodium
 
@@ -176,6 +179,8 @@ flatpak remote-add --if-not-exists flathub "$url_flathub"
 
 ### Updating system after adding new repos.
 
+sudo dnf clean all
+sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=US/' fedora*
 sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -238,6 +243,8 @@ curl -OL https://github.com/wagoodman/dive/releases/download/v"${DIVE_VERSION}"/
 rpm -i dive_"${DIVE_VERSION}"_linux_amd64.rpm
 
 curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+
+curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
 # Install LACT AMD GPU Tool.
 

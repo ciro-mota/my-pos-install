@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 06/08/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 01/11/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -62,6 +62,7 @@ apps = adw-gtk3-theme \
 	containerd \
 	codium \
 	cowsay \
+	docker-compose \
 	fastfetch \
 	ffmpegthumbnailer \
 	file-roller \
@@ -132,6 +133,8 @@ app-remover:								# Uninstalling unnecessary packages.
 add-rpm-fusion:								# Adding RPM Fusion.
 	@sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(shell rpm -E %fedora).noarch.rpm \
 	https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(shell rpm -E %fedora).noarch.rpm -y
+	@sudo sed -i '/#baseurl/a baseurl=http://ftp-stud.hs-esslingen.de/pub/Mirrors/rpmfusion.org/free/fedora/updates/$releasever/$basearch/' rpmfusion*.repo
+	@sudo sed -i 's/^metalink/#&/' /etc/yum.repos.d/rpmfusion*.repo
 
 .ONESHELL:
 add-vscodium-repo:							# Adding VSCodium repo.
@@ -153,6 +156,8 @@ add-flathub:								# Adding Flathub repo.
 	@flatpak remote-add --if-not-exists flathub $(url_flathub)
 
 update-repos:								# Updating system after adding new repos.
+	@sudo dnf clean all
+	@sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=US/' fedora*
 	@sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -201,6 +206,8 @@ install-tools:								# Install some tools
 	rpm -i dive_${DIVE_VERSION}_linux_amd64.rpm
 
 	@curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
+	
+	@curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 	
 install-lact:								# Install LACT AMD GPU Tool.
 	@curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
