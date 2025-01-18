@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 01/11/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 18/01/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -21,7 +21,6 @@
 
 url_jopplin="https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh"
 url_flathub="https://flathub.org/repo/flathub.flatpakrepo"
-url_tviewer="https://download.teamviewer.com/download/linux/teamviewer.x86_64.rpm"
 url_fastfetch="https://github.com/ciro-mota/my-pos-install/raw/main/confs/fastfetch/config.jsonc"
 url_terminator="https://github.com/ciro-mota/my-pos-install/raw/main/confs/terminator/config"
 url_micro="https://github.com/ciro-mota/my-pos-install/raw/main/confs/micro/settings.json"
@@ -79,6 +78,10 @@ apps_install=(adw-gtk3-theme
 	hugo 
 	ksnip 
 	lolcat 
+	lpf 
+	lpf-cleartype-fonts 
+	lpf-mscore-fonts 
+	lpf-mscore-tahoma-fonts 
 	lsd 
 	mangohud 
 	nautilus-python 
@@ -87,7 +90,6 @@ apps_install=(adw-gtk3-theme
 	opentofu 
 	pre-commit 
 	qemu-system-x86 
-	terminator 
 	ulauncher 
 	unrar-free 
 	vim-enhanced 
@@ -139,9 +141,9 @@ fi
 # ------------------------------------------ APPLYING REQUIREMENTS -------------------------------------------- #
 ### Tweaks to dnf.conf
 
-sudo echo -e "color=always" | sudo tee -a /etc/dnf/dnf.conf
-sudo echo -e "clean_requirements_on_remove=True" | sudo tee -a /etc/dnf/dnf.conf
-sudo echo -e "defaultyes=True" | sudo tee -a /etc/dnf/dnf.conf
+echo -e "color=always" | sudo tee -a /etc/dnf/dnf.conf
+echo -e "clean_requirements_on_remove=True" | sudo tee -a /etc/dnf/dnf.conf
+echo -e "defaultyes=True" | sudo tee -a /etc/dnf/dnf.conf
 
 ### Uninstalling unnecessary packages.
 
@@ -180,7 +182,7 @@ flatpak remote-add --if-not-exists flathub "$url_flathub"
 ### Updating system after adding new repos.
 
 sudo dnf clean all
-sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=US/' fedora*
+sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=DE/' fedora*
 sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -219,12 +221,6 @@ done
 
 wget -O - $url_jopplin | bash
 
-### Downloading and installing .rpm packages.
-
-mkdir -p "$directory_downloads"
-wget "$url_tviewer" -P "$directory_downloads"
-sudo dnf install -y "$directory_downloads"/*.rpm
-
 ### Install of Codium extensions.
 
 for code_ext in "${code_extensions[@]}"; do
@@ -256,10 +252,6 @@ curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
 | xargs wget -q -P /tmp/ \
 && sudo dnf install -y /tmp/*fedora-40.rpm
 
-### Installing Microsoft Fonts.
-
-yes | sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
-
 # ------------------------------------------------------------------------------------------------------------- #
 # --------------------------------------------------- POS-INSTALL --------------------------------------------- #
 
@@ -267,11 +259,14 @@ yes | sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/ms
 ## wiki.archlinux.org/title/improving_performance#Changing_I/O_scheduler
 
 sudo tee -a /etc/udev/rules.d/60-ioschedulers.rules << 'EOF'
-# HDD
-ACTION=="add|change", KERNEL=="sdb", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
+# Define o escalonador para NVMe
+ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 
-# SSD
-ACTION=="add|change", KERNEL=="sda", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
+# Define o escalonador para SSD e eMMC
+ACTION=="add|change", KERNEL=="sd[a-z]|mmcblk[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
+
+# Define o escalonador para discos rotativos
+ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 EOF
 
 ### Font fixes.
@@ -521,7 +516,7 @@ curl -fsSL https://api.github.com/repos/canonical/Ubuntu-Sans-fonts/releases/lat
 cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
 cp -a /tmp/FantasqueSansMNerdFont*.ttf "$HOME"/.local/share/fonts
 sudo fc-cache -f -v >/dev/null
-
+lpf update
 }
 
 if [ -d "$HOME"/.local/share/fonts ]

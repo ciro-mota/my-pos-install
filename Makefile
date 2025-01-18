@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 01/11/2024. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 18/01/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -21,7 +21,6 @@ FEDORA_RELEASE = $(shell head /etc/fedora-release | sed 's/.* \([0-9]\+\) .*/\1/
 
 ### Dynamic repos and download links.
 url_flathub = https://flathub.org/repo/flathub.flatpakrepo
-url_tviewer = https://download.teamviewer.com/download/linux/teamviewer.x86_64.rpm
 url_jopplin = https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh
 url_fastfetch = https://github.com/ciro-mota/my-pos-install/raw/main/confs/fastfetch/config.jsonc
 url_terminator = https://github.com/ciro-mota/my-pos-install/raw/main/confs/terminator/config
@@ -79,6 +78,10 @@ apps = adw-gtk3-theme \
 	hugo \
 	ksnip \
 	lolcat \
+	lpf \
+	lpf-cleartype-fonts \
+	lpf-mscore-fonts \
+	lpf-mscore-tahoma-fonts \
 	lsd \
 	mangohud \
 	nautilus-python \
@@ -87,7 +90,6 @@ apps = adw-gtk3-theme \
 	opentofu \
 	pre-commit \
 	qemu-system-x86 \
-	terminator \
 	ulauncher \
 	unrar-free \
 	vim-enhanced \
@@ -123,9 +125,9 @@ directory_downloads = $(HOME)/Downloads/apps
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ APPLYING REQUIREMENTS -------------------------------------------- #
 dnf-tweaks:									# Apply Tweaks to dnf.conf
-	@sudo echo -e "color=always" | sudo tee -a /etc/dnf/dnf.conf
-	@sudo echo -e "clean_requirements_on_remove=True" | sudo tee -a /etc/dnf/dnf.conf
-	@sudo echo -e "defaultyes=True" | sudo tee -a /etc/dnf/dnf.conf
+	@echo -e "color=always" | sudo tee -a /etc/dnf/dnf.conf
+	@echo -e "clean_requirements_on_remove=True" | sudo tee -a /etc/dnf/dnf.conf
+	@echo -e "defaultyes=True" | sudo tee -a /etc/dnf/dnf.conf
 
 app-remover:								# Uninstalling unnecessary packages.
 	@sudo dnf remove -y $(apps_remover)
@@ -157,7 +159,7 @@ add-flathub:								# Adding Flathub repo.
 
 update-repos:								# Updating system after adding new repos.
 	@sudo dnf clean all
-	@sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=US/' fedora*
+	@sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=DE/' fedora*
 	@sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -184,11 +186,6 @@ install-flatpaks:							# Install of Flatpak apps.
 
 install-joplin:								# Install of Jopplin.
 	@wget -O - $(url_jopplin) | bash
-
-install-rpm:								# Downloading and installing .rpm packages.
-	@mkdir -p $(directory_downloads)
-	@curl -fsSL $(url_tviewer) -o $(directory_downloads)/teamviewer.rpm
-	@sudo dnf install -y $(directory_downloads)/teamviewer.rpm
 
 install-codium-ex:							# Install of Codium extensions.
 	@for code_ext in $(code_extensions); do \
@@ -218,20 +215,20 @@ install-lact:								# Install LACT AMD GPU Tool.
 	| xargs wget -q -P /tmp/ \
 	&& sudo dnf install -y /tmp/*fedora-40.rpm
 
-install-ms-fonts:							# Installing Microsoft Fonts:
-	@yes | sudo rpm -i -y https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
-
 # # ------------------------------------------------------------------------------------------------------------- #
 # # -------------------------------------------------- POST-INSTALL --------------------------------------------- #
 ## wiki.archlinux.org/title/improving_performance#Changing_I/O_scheduler
 .ONESHELL:
 apply-performance:							# Apply performance disk improvements.
 	@sudo tee -a /etc/udev/rules.d/60-ioschedulers.rules << 'EOF'
-	# HDD
-	ACTION=="add|change", KERNEL=="sdb", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
+	# Define o escalonador para NVMe
+	ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 
-	# SSD
-	ACTION=="add|change", KERNEL=="sda", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
+	# Define o escalonador para SSD e eMMC
+	ACTION=="add|change", KERNEL=="sd[a-z]|mmcblk[0-9]*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
+
+	# Define o escalonador para discos rotativos
+	ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 	EOF
 
 ## wiki.manjaro.org/index.php/Improve_Font_Rendering
@@ -462,6 +459,7 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 	cp -a /tmp/UbuntuSans-fonts-*/ttf/*.ttf "$HOME"/.local/share/fonts
 	cp -a /tmp/FantasqueSansMNerdFont*.ttf "$HOME"/.local/share/fonts
 	sudo fc-cache -f -v >/dev/null
+	lpf update
 
 	}
 
@@ -516,12 +514,10 @@ apply-execution:							# Apply execution section in the system if the distro is 
 		$(MAKE) install-qemu; \
 		$(MAKE) install-flatpaks; \
 		$(MAKE) install-joplin; \
-		$(MAKE) install-rpm; \
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
 		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
-		$(MAKE) install-ms-fonts; \
 	else \
 		echo -e "\e[31;1mDistro not approved for use with this script.\e[m"; \
 		exit 1; \
@@ -566,12 +562,10 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) install-qemu; \
 		$(MAKE) install-flatpaks; \
 		$(MAKE) install-joplin; \
-		$(MAKE) install-rpm; \
 		$(MAKE) install-codium-ex; \
 		$(MAKE) install-tinifier; \
 		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
-		$(MAKE) install-ms-fonts; \
 		$(MAKE) apply-performance; \
 		$(MAKE) apply-font-fix; \
 		$(MAKE) apply-settings-swap; \
