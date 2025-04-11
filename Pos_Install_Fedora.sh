@@ -12,7 +12,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 18/01/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 11/04/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -54,6 +54,8 @@ apps_remove=(cheese
 
 apps_install=(adw-gtk3-theme 
 	android-tools 
+	ansible 
+	ansible-lint 
 	bat 
 	btop 
 	cabextract 
@@ -70,6 +72,7 @@ apps_install=(adw-gtk3-theme
 	fragments 
 	gedit 
 	gimp 
+	gnome-shell-extension-appindicator 
 	gnome-tweaks 
 	google-noto-emoji-fonts 
 	goverlay 
@@ -115,11 +118,11 @@ code_extensions=(AquaSecurityOfficial.trivy-vulnerability-scanner
 	HashiCorp.terraform
 	ritwickdey.LiveServer
 	MS-CEINTL.vscode-language-pack-pt-BR
-	Shan.code-settings-sync
 	streetsidesoftware.code-spell-checker
 	streetsidesoftware.code-spell-checker-portuguese-brazilian
 	timonwong.shellcheck
-	zhuangtongfa.Material-theme)
+	zhuangtongfa.Material-theme
+	zokugun.sync-settings)
 
 directory_downloads="$HOME/Downloads/apps"
 
@@ -127,7 +130,7 @@ directory_downloads="$HOME/Downloads/apps"
 # ---------------------------------------------------- TEST --------------------------------------------------- #
 ### Check if the distribution is correct.
 
-if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(40|41)$ ]]
+if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(41|42)$ ]]
 then
 	echo ""
 	echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"
@@ -357,6 +360,14 @@ sudo systemctl enable libvirtd
 
 sudo sed -i '/unqualified-search-registries/s/^/#/' /etc/containers/registries.conf
 echo -e "unqualified-search-registries = ['docker.io']" | sudo tee -a /etc/containers/registries.conf
+
+### Ansible Settings.
+
+sudo tee -a /etc/ansible/ansible.cfg << 'EOF'
+[defaults]
+stdout_callback = community.general.yaml
+EOF
+ansible-galaxy collection install community.docker
 
 ### Disabling unnecessary services.
 

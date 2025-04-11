@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 18/01/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 11/04/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -54,6 +54,8 @@ apps_remover = cheese \
 
 apps = adw-gtk3-theme \
 	android-tools \
+	ansible \
+	ansible-lint \
 	bat \
 	btop \
 	cabextract \
@@ -70,6 +72,7 @@ apps = adw-gtk3-theme \
 	fragments \
 	gedit \
 	gimp \
+	gnome-shell-extension-appindicator \
 	gnome-tweaks \
 	google-noto-emoji-fonts \
 	goverlay \
@@ -114,11 +117,11 @@ code_extensions = AquaSecurityOfficial.trivy-vulnerability-scanner \
 	foxundermoon.shell-format \
 	HashiCorp.terraform \
 	ritwickdey.LiveServer \
-	Shan.code-settings-sync \
 	streetsidesoftware.code-spell-checker \
 	streetsidesoftware.code-spell-checker-portuguese-brazilian \
 	timonwong.shellcheck \
-	zhuangtongfa.Material-theme
+	zhuangtongfa.Material-theme \
+	zokugun.sync-settings
 
 directory_downloads = $(HOME)/Downloads/apps
 
@@ -313,6 +316,14 @@ apply-podman-settings:						# Disabling possibility of selecting other repositor
 	@sudo sed -i '/unqualified-search-registries/s/^/#/' /etc/containers/registries.conf
 	@echo -e "unqualified-search-registries = ['docker.io']" | sudo tee -a /etc/containers/registries.conf
 
+
+apply-ansible-settings:						# Apply better output config
+	@sudo tee -a /etc/ansible/ansible.cfg << 'EOF'
+	[defaults]
+	stdout_callback = community.general.yaml
+	EOF
+	@ansible-galaxy collection install community.docker
+
 disable-services:							# Disabling unnecessary services.
 	@sudo systemctl stop abrt-journal-core.service
 	@sudo systemctl stop abrt-oops.service
@@ -479,7 +490,7 @@ finish-clenaning:							# Finishing and cleaning.
 	@sudo systemctl daemon-reload
 
 apply-requirements:							# Apply requirements section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
+	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -496,7 +507,7 @@ apply-requirements:							# Apply requirements section in the system if the dist
 	fi
 	
 apply-execution:							# Apply execution section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
+	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -516,7 +527,7 @@ apply-execution:							# Apply execution section in the system if the distro is 
 	fi
 	
 apply-post-install:							# Apply post-install section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
+	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -525,6 +536,7 @@ apply-post-install:							# Apply post-install section in the system if the dist
 		$(MAKE) apply-settings-swap; \
 		$(MAKE) apply-qemu-settings; \
 		$(MAKE) apply-podman-settings; \
+		$(MAKE) apply-ansible-settings; \
 		$(MAKE) disable-services; \
 		$(MAKE) disable-repos; \
 		$(MAKE) new-hostname; \
@@ -537,7 +549,7 @@ apply-post-install:							# Apply post-install section in the system if the dist
 	fi
 	
 apply-all:									# Apply all sections in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 40 ] || [ $(FEDORA_RELEASE) = 41 ]; then \
+	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -563,6 +575,7 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) apply-settings-swap; \
 		$(MAKE) apply-qemu-settings; \
 		$(MAKE) apply-podman-settings; \
+		$(MAKE) apply-ansible-settings; \
 		$(MAKE) disable-services; \
 		$(MAKE) disable-repos; \
 		$(MAKE) new-hostname; \
