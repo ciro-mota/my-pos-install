@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 11/04/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 04/06/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -64,6 +64,7 @@ apps = adw-gtk3-theme \
 	codium \
 	cowsay \
 	docker-compose \
+	duf \
 	fastfetch \
 	ffmpegthumbnailer \
 	file-roller \
@@ -481,6 +482,7 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 	@gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium-browser.desktop', 'codium.desktop', 'appimagekit-joplin.desktop']"
 	@gsettings set org.gnome.desktop.interface font-name 'Ubuntu 11' 
 	@gsettings set org.gnome.desktop.interface monospace-font-name 'Ubuntu Mono 13'
+	@gsettings set org.gnome.SessionManager logout-prompt false
 
 	@curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 

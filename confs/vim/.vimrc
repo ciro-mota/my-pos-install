@@ -20,3 +20,9 @@ autocmd vimenter * ++nested colorscheme onedark
 set background=dark
 syntax on
 set completeopt=noinsert,menuone,noselect
+set mouse=r
+
+
+map <C-a> ggVG
+map <C-c> "+y"
+map <C-v> "+p"
