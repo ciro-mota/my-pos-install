@@ -10,7 +10,7 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 04/06/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 07/11/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
@@ -21,9 +21,8 @@ FEDORA_RELEASE = $(shell head /etc/fedora-release | sed 's/.* \([0-9]\+\) .*/\1/
 
 ### Dynamic repos and download links.
 url_flathub = https://flathub.org/repo/flathub.flatpakrepo
-url_jopplin = https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh
 url_fastfetch = https://github.com/ciro-mota/my-pos-install/raw/main/confs/fastfetch/config.jsonc
-url_terminator = https://github.com/ciro-mota/my-pos-install/raw/main/confs/terminator/config
+url_kitty="https://github.com/ciro-mota/my-pos-install/raw/main/confs/kitty/kitty.conf"
 url_micro = https://github.com/ciro-mota/my-pos-install/raw/main/confs/micro/settings.json
 url_starship = https://github.com/ciro-mota/my-pos-install/raw/main/confs/starship/starship.toml
 url_vim = https://github.com/ciro-mota/my-pos-install/raw/main/confs/vim/.vimrc
@@ -53,9 +52,11 @@ apps_remover = cheese \
 	yelp
 
 apps = adw-gtk3-theme \
+	aha \
 	android-tools \
 	ansible \
 	ansible-lint \
+	awscli \
 	bat \
 	btop \
 	cabextract \
@@ -77,10 +78,12 @@ apps = adw-gtk3-theme \
 	gnome-tweaks \
 	google-noto-emoji-fonts \
 	goverlay \
+	grepcidr \
 	hadolint \
 	heroic-games-launcher-bin \
 	hugo \
 	ksnip \
+	kopia \
 	lolcat \
 	lpf \
 	lpf-cleartype-fonts \
@@ -102,27 +105,36 @@ apps = adw-gtk3-theme \
 	xorg-x11-font-utils \
 	zsh
 
-flatpaks = com.github.finefindus.eyedropper \
+flatpaks = be.alexandervanhee.gradia \
+	com.github.finefindus.eyedropper \
 	com.github.GradienceTeam.Gradience \
 	com.mattjakeman.ExtensionManager \
 	com.valvesoftware.Steam \
+	io.github.celluloid_player.Celluloid \
+	md.obsidian.Obsidian \
 	org.libreoffice.LibreOffice \
+	org.onlyoffice.desktopeditors \
 	org.remmina.Remmina \
 	org.telegram.desktop
 
-code_extensions = AquaSecurityOfficial.trivy-vulnerability-scanner \
-	dendron.dendron-markdown-shortcuts \
+code_extensions = anchoreinc.grype-vscode \
 	eamodio.gitlens \
 	emmanuelbeziat.vscode-great-icons \
 	exiasr.hadolint \
 	foxundermoon.shell-format \
-	HashiCorp.terraform \
-	ritwickdey.LiveServer \
+	github.copilot \
+	hashicorp.terraform \
+	iamhyc.overleaf-workshop \
+	ms-python.black-formatter \
+	ms-python.python \
+	ritwickdey.liveserver \
 	streetsidesoftware.code-spell-checker \
 	streetsidesoftware.code-spell-checker-portuguese-brazilian \
 	timonwong.shellcheck \
-	zhuangtongfa.Material-theme \
-	zokugun.sync-settings
+	upstash.context7-mcp \
+	yzhang.markdown-all-in-one \
+	zhuangtongfa.material-theme \
+	zokugun.cron-tasks
 
 directory_downloads = $(HOME)/Downloads/apps
 
@@ -150,12 +162,24 @@ add-vscodium-repo:							# Adding VSCodium repo.
 add-heroic-repo:							# Adding Heroic Games repo.
 	@sudo dnf copr enable atim/heroic-games-launcher -y
 
+.ONESHELL:
+add-copia-repo:								# Adding Kopia backup repo.
+	@sudo rpm --import https://kopia.io/signing-key
+	@sudo tee /etc/yum.repos.d/kopia.repo << 'EOF'
+	[Kopia]
+	name=Kopia
+	baseurl=http://packages.kopia.io/rpm/stable/\$basearch/
+	gpgcheck=1
+	enabled=1
+	gpgkey=https://kopia.io/signing-key
+	EOF	
+
 add-flathub:								# Adding Flathub repo.
 	@flatpak remote-add --if-not-exists flathub $(url_flathub)
 
 update-repos:								# Updating system after adding new repos.
 	@sudo dnf clean all
-	@sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=DE/' fedora*
+	@sudo sed -i '/^baseurl/s/^/#/; /^metalink/s/^/#/; /^name=/a baseurl=http://ftp-stud.hs-esslingen.de/pub/Mirrors/rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/' /etc/yum.repos.d/rpmfusion*.repo
 	@sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -180,27 +204,21 @@ install-qemu:								# Installing QEMU/Virt-Manager.
 install-flatpaks:							# Install of Flatpak apps.
 	@sudo flatpak install flathub -y $(flatpaks)
 
-install-joplin:								# Install of Jopplin.
-	@wget -O - $(url_jopplin) | bash
-
-install-codium-ex:							# Install of Codium extensions.
+install-codium-ex:							# Configuration and Install of Codium extensions.
+	@tee -a "$HOME"/.config/VSCodium/product.json << 'EOF'
+	{
+	"extensionsGallery": {
+		"serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+		"itemUrl": "https://marketplace.visualstudio.com/items",
+		"cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+		"controlUrl": ""
+		}
+	}
+	EOF
+	
 	@for code_ext in $(code_extensions); do \
 		codium --install-extension $$code_ext 2> /dev/null; \
 	done
-
-install-tinifier:							# Install Tinifier compress images tool.
-	@wget -O /tmp/tinifier https://github.com/tarampampam/tinifier/releases/download/v4.1.0/tinifier-linux-amd64
-	@sudo cp /tmp/tinifier /usr/local/bin
-	@sudo chmod +x /usr/local/bin/tinifier
-
-install-tools:								# Install some tools
-	@DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-	curl -OL https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_amd64.rpm
-	rpm -i dive_${DIVE_VERSION}_linux_amd64.rpm
-
-	@curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
-	
-	@curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 	
 install-lact:								# Install LACT AMD GPU Tool.
 	@curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
@@ -210,6 +228,10 @@ install-lact:								# Install LACT AMD GPU Tool.
 	| tr -d \" \
 	| xargs wget -q -P /tmp/ \
 	&& sudo dnf install -y /tmp/*fedora-40.rpm
+	
+install-nvm:								# Install Node Version Manager.
+	@curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
+	@nvm install "$(nvm ls-remote | grep "Latest LTS" | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/v\1/' | tail -1)"
 
 # # ------------------------------------------------------------------------------------------------------------- #
 # # -------------------------------------------------- POST-INSTALL --------------------------------------------- #
@@ -316,6 +338,7 @@ apply-qemu-settings:						# Apply QEMU Settings.
 apply-podman-settings:						# Disabling possibility of selecting other repositories for downloading container images.
 	@sudo sed -i '/unqualified-search-registries/s/^/#/' /etc/containers/registries.conf
 	@echo -e "unqualified-search-registries = ['docker.io']" | sudo tee -a /etc/containers/registries.conf
+	@sudo sed -i '/^[[:space:]]*#/! s/^/# /' /etc/containers/registries.conf.d/000-shortnames.conf
 
 
 apply-ansible-settings:						# Apply better output config
@@ -419,11 +442,12 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 		curl -fsSL $(url_fastfetch) -o $(HOME)/.config/fastfetch/config.jsonc; \
 	fi
 
-	@if [ -d "$(HOME)/.config/terminator" ]; then \
-		curl -fsSL $(url_terminator) -o $(HOME)/.config/terminator/config; \
-	else \
-		mkdir -p "$(HOME)/.config/terminator"; \
-		curl -fsSL $(url_terminator) -o $(HOME)/.config/terminator/config; \
+	@if [ -d "$HOME"/.config/kitty ]
+	then
+		wget "$url_kitty" -P "$HOME"/.config/kitty
+	else
+		mkdir -p "$HOME"/.config/kitty
+		wget "$url_kitty" -P "$HOME"/.config/kitty
 	fi
 
 	@if [ -d "$(HOME)/.config/micro" ]; then \
@@ -479,7 +503,7 @@ apply-icon-theme-settings:					# Installation of icons, themes, font and basic s
 	@sudo flatpak override --filesystem="xdg-data/icons:ro"
 	@gsettings set org.gnome.desktop.default-applications.terminal exec terminator
 	@gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
-	@gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium-browser.desktop', 'codium.desktop', 'appimagekit-joplin.desktop']"
+	@gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium-browser.desktop', 'codium.desktop', 'md.obsidian.Obsidian']"
 	@gsettings set org.gnome.desktop.interface font-name 'Ubuntu 11' 
 	@gsettings set org.gnome.desktop.interface monospace-font-name 'Ubuntu Mono 13'
 	@gsettings set org.gnome.SessionManager logout-prompt false
@@ -492,7 +516,7 @@ finish-clenaning:							# Finishing and cleaning.
 	@sudo systemctl daemon-reload
 
 apply-requirements:							# Apply requirements section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
+	@if [ $(FEDORA_RELEASE) = 42 ] || [ $(FEDORA_RELEASE) = 43 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -501,6 +525,7 @@ apply-requirements:							# Apply requirements section in the system if the dist
 		$(MAKE) add-rpm-fusion; \
 		$(MAKE) add-vscodium-repo; \
 		$(MAKE) add-heroic-repo; \
+		$(MAKE) add-copia-repo; \
 		$(MAKE) add-flathub; \
 		$(MAKE) update-repos; \
 	else \
@@ -509,7 +534,7 @@ apply-requirements:							# Apply requirements section in the system if the dist
 	fi
 	
 apply-execution:							# Apply execution section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
+	@if [ $(FEDORA_RELEASE) = 42 ] || [ $(FEDORA_RELEASE) = 43 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -518,18 +543,16 @@ apply-execution:							# Apply execution section in the system if the distro is 
 		$(MAKE) install-amd-mesa; \
 		$(MAKE) install-qemu; \
 		$(MAKE) install-flatpaks; \
-		$(MAKE) install-joplin; \
 		$(MAKE) install-codium-ex; \
-		$(MAKE) install-tinifier; \
-		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
+		$(MAKE) install-nvm; \
 	else \
 		echo -e "\e[31;1mDistro not approved for use with this script.\e[m"; \
 		exit 1; \
 	fi
 	
 apply-post-install:							# Apply post-install section in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
+	@if [ $(FEDORA_RELEASE) = 42 ] || [ $(FEDORA_RELEASE) = 43 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -551,7 +574,7 @@ apply-post-install:							# Apply post-install section in the system if the dist
 	fi
 	
 apply-all:									# Apply all sections in the system if the distro is correct.
-	@if [ $(FEDORA_RELEASE) = 41 ] || [ $(FEDORA_RELEASE) = 42 ]; then \
+	@if [ $(FEDORA_RELEASE) = 42 ] || [ $(FEDORA_RELEASE) = 43 ]; then \
 		echo ""; \
 		echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"; \
 		echo ""; \
@@ -560,6 +583,7 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) add-rpm-fusion; \
 		$(MAKE) add-vscodium-repo; \
 		$(MAKE) add-heroic-repo; \
+		$(MAKE) add-copia-repo; \
 		$(MAKE) add-flathub; \
 		$(MAKE) update-repos; \
 		$(MAKE) app-install; \
@@ -567,11 +591,9 @@ apply-all:									# Apply all sections in the system if the distro is correct.
 		$(MAKE) install-amd-mesa; \
 		$(MAKE) install-qemu; \
 		$(MAKE) install-flatpaks; \
-		$(MAKE) install-joplin; \
 		$(MAKE) install-codium-ex; \
-		$(MAKE) install-tinifier; \
-		$(MAKE) install-tools; \
 		$(MAKE) install-lact; \
+		$(MAKE) install-nvm; \
 		$(MAKE) apply-performance; \
 		$(MAKE) apply-font-fix; \
 		$(MAKE) apply-settings-swap; \

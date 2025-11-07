@@ -1,0 +1,5 @@
+{
+  "enable-proposed-api": ["GitHub.copilot-chat", "GitHub.copilot"],
+  "allow-extension-gallery": true
+}
+

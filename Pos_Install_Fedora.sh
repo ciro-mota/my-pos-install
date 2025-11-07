@@ -12,17 +12,16 @@
 ## LICENSE:
 ###		  GPLv3. <https://github.com/ciro-mota/my-pos-install/blob/main/LICENSE>
 ## CHANGELOG:
-### 		Last Edition 04/06/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
+### 		Last Edition 07/11/2025. <https://github.com/ciro-mota/my-pos-install/commits/main>
 
 # ------------------------------------------------------------------------------------------------------------- #
 # ------------------------------------------ VARIABLES AND REQUIREMENTS --------------------------------------- #
 
 ### Dynamic repos and download links.
 
-url_jopplin="https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh"
 url_flathub="https://flathub.org/repo/flathub.flatpakrepo"
 url_fastfetch="https://github.com/ciro-mota/my-pos-install/raw/main/confs/fastfetch/config.jsonc"
-url_terminator="https://github.com/ciro-mota/my-pos-install/raw/main/confs/terminator/config"
+url_kitty="https://github.com/ciro-mota/my-pos-install/raw/main/confs/kitty/kitty.conf"
 url_micro="https://github.com/ciro-mota/my-pos-install/raw/main/confs/micro/settings.json"
 url_starship="https://github.com/ciro-mota/my-pos-install/raw/main/confs/starship/starship.toml"
 url_vim="https://github.com/ciro-mota/my-pos-install/raw/main/confs/vim/.vimrc"
@@ -53,9 +52,11 @@ apps_remove=(cheese
 	yelp)
 
 apps_install=(adw-gtk3-theme 
+	aha 
 	android-tools 
 	ansible 
 	ansible-lint 
+	awscli 
 	bat 
 	btop 
 	cabextract 
@@ -77,10 +78,12 @@ apps_install=(adw-gtk3-theme
 	gnome-tweaks 
 	google-noto-emoji-fonts 
 	goverlay 
+	grepcidr 
 	hadolint 
 	heroic-games-launcher-bin 
 	hugo 
 	ksnip 
+	kopia 
 	lolcat 
 	lpf 
 	lpf-cleartype-fonts 
@@ -102,28 +105,36 @@ apps_install=(adw-gtk3-theme
 	xorg-x11-font-utils 
 	zsh)
 
-flatpak_install=(com.github.finefindus.eyedropper
+flatpak_install=(be.alexandervanhee.gradia 
+	com.github.finefindus.eyedropper 
 	com.github.GradienceTeam.Gradience 
 	com.mattjakeman.ExtensionManager 
 	com.valvesoftware.Steam 
+	io.github.celluloid_player.Celluloid 
+	md.obsidian.Obsidian 
 	org.libreoffice.LibreOffice 
+	org.onlyoffice.desktopeditors 
 	org.remmina.Remmina 
 	org.telegram.desktop)
 
-code_extensions=(AquaSecurityOfficial.trivy-vulnerability-scanner
-	dendron.dendron-markdown-shortcuts
-	eamodio.gitlens
-	emmanuelbeziat.vscode-great-icons
-	exiasr.hadolint
-	foxundermoon.shell-format
-	HashiCorp.terraform
-	ritwickdey.LiveServer
-	MS-CEINTL.vscode-language-pack-pt-BR
-	streetsidesoftware.code-spell-checker
-	streetsidesoftware.code-spell-checker-portuguese-brazilian
-	timonwong.shellcheck
-	zhuangtongfa.Material-theme
-	zokugun.sync-settings)
+code_extensions=(anchoreinc.grype-vscode 
+	eamodio.gitlens 
+	emmanuelbeziat.vscode-great-icons 
+	exiasr.hadolint 
+	foxundermoon.shell-format 
+	github.copilot 
+	hashicorp.terraform 
+	iamhyc.overleaf-workshop 
+	ms-python.black-formatter 
+	ms-python.python 
+	ritwickdey.liveserver 
+	streetsidesoftware.code-spell-checker 
+	streetsidesoftware.code-spell-checker-portuguese-brazilian 
+	timonwong.shellcheck 
+	upstash.context7-mcp 
+	yzhang.markdown-all-in-one 
+	zhuangtongfa.material-theme 
+	zokugun.cron-tasks)
 
 directory_downloads="$HOME/Downloads/apps"
 
@@ -131,7 +142,7 @@ directory_downloads="$HOME/Downloads/apps"
 # ---------------------------------------------------- TEST --------------------------------------------------- #
 ### Check if the distribution is correct.
 
-if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(41|42)$ ]]
+if [[ $(awk '{print $3}' /etc/fedora-release) =~ ^(42|43)$ ]]
 then
 	echo ""
 	echo -e "\e[32;1mCorrect distro. Continuing with the script...\e[m"
@@ -171,6 +182,18 @@ printf "[gitlab.com_paulcarroty_vscodium_repo]\nname=download.vscodium.com\nbase
 
 sudo dnf copr enable atim/heroic-games-launcher -y
 
+### Kopia Backup
+
+sudo rpm --import https://kopia.io/signing-key
+sudo tee /etc/yum.repos.d/kopia.repo << 'EOF'
+[Kopia]
+name=Kopia
+baseurl=http://packages.kopia.io/rpm/stable/\$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://kopia.io/signing-key
+EOF
+
 ### Flathub
 
 flatpak remote-add --if-not-exists flathub "$url_flathub"
@@ -178,7 +201,7 @@ flatpak remote-add --if-not-exists flathub "$url_flathub"
 ### Updating system after adding new repos.
 
 sudo dnf clean all
-sudo sed -r -i s/'(^metalink.*basearch)/\1\&country=DE/' fedora*
+sudo sed -i '/^baseurl/s/^/#/; /^metalink/s/^/#/; /^name=/a baseurl=http://ftp-stud.hs-esslingen.de/pub/Mirrors/rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/' /etc/yum.repos.d/rpmfusion*.repo
 sudo dnf upgrade --refresh -y
 
 # ------------------------------------------------------------------------------------------------------------- #
@@ -213,30 +236,22 @@ for name_of_flatpak in "${flatpak_install[@]}"; do
     sudo flatpak install flathub -y "$name_of_flatpak"
 done
 
-### Install of Jopplin.
+### Configuration and Install of Codium extensions.
 
-wget -O - $url_jopplin | bash
-
-### Install of Codium extensions.
+tee -a "$HOME"/.config/VSCodium/product.json << 'EOF'
+{
+  "extensionsGallery": {
+    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "itemUrl": "https://marketplace.visualstudio.com/items",
+    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+    "controlUrl": ""
+  }
+}
+EOF
 
 for code_ext in "${code_extensions[@]}"; do
     codium --install-extension "$code_ext" 2> /dev/null
 done
-
-### Install Tinifier.
-
-wget -O /tmp/tinifier https://github.com/tarampampam/tinifier/releases/download/v4.1.0/tinifier-linux-amd64
-sudo cp /tmp/tinifier /usr/local/bin
-sudo chmod +x /usr/local/bin/tinifier
-
-### Install some tools
-DIVE_VERSION=$(curl -sL "https://api.github.com/repos/wagoodman/dive/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
-curl -OL https://github.com/wagoodman/dive/releases/download/v"${DIVE_VERSION}"/dive_"${DIVE_VERSION}"_linux_amd64.rpm
-rpm -i dive_"${DIVE_VERSION}"_linux_amd64.rpm
-
-curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s --
-
-curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
 # Install LACT AMD GPU Tool.
 
@@ -247,6 +262,10 @@ curl -fsSL https://api.github.com/repos/ilya-zlobintsev/LACT/releases/latest \
 | tr -d \" \
 | xargs wget -q -P /tmp/ \
 && sudo dnf install -y /tmp/*fedora-40.rpm
+
+# Install Node Version Manager
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/refs/heads/master/install.sh | bash
+nvm install "$(nvm ls-remote | grep "Latest LTS" | sed -E 's/.*v([0-9]+\.[0-9]+\.[0-9]+).*/v\1/' | tail -1)"
 
 # ------------------------------------------------------------------------------------------------------------- #
 # --------------------------------------------------- POS-INSTALL --------------------------------------------- #
@@ -361,6 +380,7 @@ sudo systemctl enable libvirtd
 
 sudo sed -i '/unqualified-search-registries/s/^/#/' /etc/containers/registries.conf
 echo -e "unqualified-search-registries = ['docker.io']" | sudo tee -a /etc/containers/registries.conf
+sudo sed -i '/^[[:space:]]*#/! s/^/# /' /etc/containers/registries.conf.d/000-shortnames.conf
 
 ### Ansible Settings.
 
@@ -463,26 +483,26 @@ fi
 
 if [ -d "$HOME"/.config/fastfetch ]
 then
-	wget  "$url_fastfetch" -P "$HOME"/.config/fastfetch
+	wget "$url_fastfetch" -P "$HOME"/.config/fastfetch
 else
 	mkdir -p "$HOME"/.config/fastfetch
-	wget  "$url_fastfetch" -P "$HOME"/.config/fastfetch
+	wget "$url_fastfetch" -P "$HOME"/.config/fastfetch
 fi
 
-if [ -d "$HOME"/.config/terminator ]
+if [ -d "$HOME"/.config/kitty ]
 then
-	wget  "$url_terminator" -P "$HOME"/.config/terminator
+	wget "$url_kitty" -P "$HOME"/.config/kitty
 else
-	mkdir -p "$HOME"/.config/terminator
-	wget  "$url_terminator" -P "$HOME"/.config/terminator
+	mkdir -p "$HOME"/.config/kitty
+	wget "$url_kitty" -P "$HOME"/.config/kitty
 fi
 
 if [ -d "$HOME"/.config/micro ]
 then \
-	wget  "$url_micro" -P "$HOME"/.config/micro; \
+	wget "$url_micro" -P "$HOME"/.config/micro; \
 else \
 	mkdir -p "$HOME"/.config/micro; \
-	wget  "$url_micro" -P "$HOME"/.config/micro; \
+	wget "$url_micro" -P "$HOME"/.config/micro; \
 fi
 
 if [ -d "$HOME"/.config/ulauncher/user-themes ]; then 
@@ -535,7 +555,7 @@ sudo flatpak override --filesystem="xdg-data/themes:ro"
 sudo flatpak override --filesystem="xdg-data/icons:ro"
 gsettings set org.gnome.desktop.default-applications.terminal exec terminator
 gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
-gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium.desktop', 'codium.desktop', 'appimagekit-joplin.desktop']"
+gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'chromium.desktop', 'codium.desktop', 'md.obsidian.Obsidian']"
 gsettings set org.gnome.desktop.interface font-name 'Ubuntu 11'
 gsettings set org.gnome.desktop.interface monospace-font-name 'Ubuntu Mono 13'
 gsettings set org.gnome.SessionManager logout-prompt false
